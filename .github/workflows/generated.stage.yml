@@ -18,7 +18,7 @@ env:
   IS_PROD_ENVIRONMENT: false
   MASTER_ACCOUNT_REGION: us-east-1
   OIDC_ROLE_ARN: arn:aws:iam::721481723200:role/oidc-GitHub-dragonops-ci
-  APP_NAME: python-flask-restapi3
+  APP_NAME: python-flask-restapi4
 
 on:
   workflow_dispatch:

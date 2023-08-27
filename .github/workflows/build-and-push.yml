@@ -15,7 +15,7 @@ on:
         type: string
       IS_PROD_ENVIRONMENT:
         required: true
-        type: boolean
+        type: string
       TAG_OVERRIDE:
         required: false
         type: string
@@ -63,7 +63,7 @@ jobs:
         run: |
           # TODO: we check for prod env and maybe we deploy the semantic version tag also? so it's easy to roll back to the last version?
           echo Checking if deploying to production...
-          if [[ $IS_PROD_ENVIRONMENT == true ]]; then echo Environment is production environment. Getting most recent tag... && vtag=${GITHUB_REF#refs/*/} && tag=${vtag#"v"} && prodtag=$ENVIRONMENT_NAME-$tag; fi
+          if [[ $IS_PROD_ENVIRONMENT == "true" ]]; then echo Environment is production environment. Getting most recent tag... && vtag=${GITHUB_REF#refs/*/} && tag=${vtag#"v"} && prodtag=$ENVIRONMENT_NAME-$tag; fi
           
           echo Building image...
           if [[ -z "${tag}" ]]; then docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$prodtag -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .; else docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .; fi
