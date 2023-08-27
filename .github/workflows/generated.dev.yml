@@ -30,21 +30,42 @@ on:
       - "!production"
 
 jobs:
+  EnvSetup:
+    name: Setup Dynamic Environment Variables
+    runs-on: ubuntu-latest
+    outputs:
+      env_name: ${{ steps.set-output-defaults.outputs.env_name }}
+      is_prod_env: ${{ steps.set-output-defaults.outputs.is_prod_env }}
+      master_account_region: ${{ steps.set-output-defaults.outputs.master_account_region }}
+      oidc_role_arn: ${{ steps.set-output-defaults.outputs.oidc_role_arn }}
+      app_name: ${{ steps.set-output-defaults.outputs.app_name }}
+    steps:
+      - name: set outputs for later jobs
+        id: set-output-defaults
+        run: |
+          # If workflow_dispatch, use inputs (left), if other trigger, use default env (right)
+          echo "master_account_region=$MASTER_ACCOUNT_REGION" >> $GITHUB_OUTPUT
+          echo "env_name=$ENVIRONMENT_NAME" >> $GITHUB_OUTPUT
+          echo "is_prod_env=$IS_PROD_ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "oidc_role_arn=$OIDC_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+
+
   BuildAndPush:
     #    environment: $ENVIRONMENT_NAME
     uses: ./.github/workflows/build-and-push.yml
     with:
-      MASTER_ACCOUNT_REGION: $MASTER_ACCOUNT_REGION
-      ENVIRONMENT_NAME: $ENVIRONMENT_NAME
-      OIDC_ROLE_ARN: $OIDC_ROLE_ARN
-      APP_NAME: $APP_NAME
-      IS_PROD_ENVIRONMENT: $IS_PROD_ENVIRONMENT
+      MASTER_ACCOUNT_REGION: ${{needs.EnvSetup.outputs.master_account_region}}
+      ENVIRONMENT_NAME: ${{needs.EnvSetup.outputs.env_name}}
+      OIDC_ROLE_ARN: ${{needs.EnvSetup.outputs.oidc_role_arn}}
+      APP_NAME: ${{needs.EnvSetup.outputs.app_name}}
+      IS_PROD_ENVIRONMENT: ${{needs.EnvSetup.outputs.is_prod_env}}
 
   DeployApp:
 #    environment: $ENVIRONMENT_NAME
     uses: ./.github/workflows/deploy-app.yml
     with:
-      MASTER_ACCOUNT_REGION: $MASTER_ACCOUNT_REGION
-      ENVIRONMENT_NAME: $ENVIRONMENT_NAME
-      OIDC_ROLE_ARN: $OIDC_ROLE_ARN
-      APP_NAME: $APP_NAME
+      MASTER_ACCOUNT_REGION: ${{needs.EnvSetup.outputs.master_account_region}}
+      ENVIRONMENT_NAME: ${{needs.EnvSetup.outputs.env_name}}
+      OIDC_ROLE_ARN: ${{needs.EnvSetup.outputs.oidc_role_arn}}
+      APP_NAME: ${{needs.EnvSetup.outputs.app_name}}
