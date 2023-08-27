@@ -67,5 +67,6 @@ jobs:
           
           echo Building image...
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          echo $prodtag
           if [[ -z "${prodtag}" ]]; then echo "what" && docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$prodtag; fi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
