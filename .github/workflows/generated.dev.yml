@@ -52,6 +52,7 @@ jobs:
 
 
   BuildAndPush:
+    needs: [EnvSetup]
     #    environment: $ENVIRONMENT_NAME
     uses: ./.github/workflows/build-and-push.yml
     with:
@@ -62,6 +63,7 @@ jobs:
       IS_PROD_ENVIRONMENT: ${{needs.EnvSetup.outputs.is_prod_env}}
 
   DeployApp:
+    needs: [EnvSetup]
 #    environment: $ENVIRONMENT_NAME
     uses: ./.github/workflows/deploy-app.yml
     with:
