@@ -47,8 +47,6 @@ jobs:
 
       - name: Set short git commit SHA
         id: vars
-        outputs:
-          tag: ${{ steps.vars.outputs.tag }}
         env:
           ENVIRONMENT_NAME: ${{ inputs.ENVIRONMENT_NAME }}
         run: |
