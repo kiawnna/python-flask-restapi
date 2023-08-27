@@ -19,7 +19,7 @@ env:
   IS_PROD_ENVIRONMENT: false
   MASTER_ACCOUNT_REGION: us-east-1
   OIDC_ROLE_ARN: arn:aws:iam::721481723200:role/oidc-GitHub-dragonops-ci
-  APP_NAME: python-flask-restapi2
+  APP_NAME: python-flask-restapi3
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
   BuildAndPush:
     #    environment: $ENVIRONMENT_NAME
     needs: BumpTag
-    uses: ./.github/workflows/reusable/build-and-push.yml
+    uses: ./.github/workflows/build-and-push.yml
     with:
       MASTER_ACCOUNT_REGION: $MASTER_ACCOUNT_REGION
       ENVIRONMENT_NAME: $ENVIRONMENT_NAME
@@ -48,4 +48,4 @@ jobs:
 
   DeployApp:
     #    environment: $ENVIRONMENT_NAME
-    uses: ./.github/workflows/reusable/deploy-app.yml
+    uses: ./.github/workflows/deploy-app.yml
