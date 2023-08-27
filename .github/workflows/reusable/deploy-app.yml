@@ -1,0 +1,42 @@
+on:
+  workflow_call:
+    inputs:
+      MASTER_ACCOUNT_REGION:
+        required: true
+        type: string
+      ENVIRONMENT_NAME:
+        required: true
+        type: string
+      OIDC_ROLE_ARN:
+        required: true
+        type: string
+      APP_NAME:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+   DeployApp:
+    name: Deploy DragonOps App
+    container:
+      image: "public-docker-image-with-dragonops-installed" #TODO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials for DragonOps
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ inputs.OIDC_ROLE_ARN }}
+          aws-region: ${{ inputs.MASTER_ACCOUNT_REGION }}
+
+      - name: Deploy App
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.ENVIRONMENT_NAME }}
+          APP_NAME: ${{ inputs.APP_NAME }}
+        run: |
+          dragonops app deploy --name $APP_NAME --environment $ENVIRONMENT_NAME --auto-confirm

@@ -1,0 +1,48 @@
+#################
+## DragonOps recommends creating environments (https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment).
+## Environments allow users to configure `manual` jobs (this means that a deploy to production would need to be approved).
+## See here for more information: https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#using-environments-to-manually-trigger-workflow-jobs
+## Users can also set MASTER_ACCOUNT_REGION, OIDC_ROLE_ARN and APP_NAME to repository-level variables and reference them as: ${{ vars.VARIBLE_NAME }}
+#################
+
+########
+# This `stage` workflow will trigger when a pull request to the master, main, prod, or production branch is approved.
+# The app will be deployed to the stage environment.
+## Note: The BuildAndPush step will trigger the update to your application code. The DeployApp step will only update
+## infrastructure changes, like IAM permissions, port and command.
+########
+name: DeployToStage
+
+env:
+  ENVIRONMENT_NAME: stage
+  IS_PROD_ENVIRONMENT: false
+  MASTER_ACCOUNT_REGION: us-east-1
+  OIDC_ROLE_ARN: arn:aws:iam::721481723200:role/oidc-GitHub-dragonops-ci
+  APP_NAME: python-flask-restapi2
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - "master"
+      - "main"
+      - "prod"
+      - "production"
+    types: [closed]
+
+jobs:
+  BuildAndPush:
+    #    environment: $ENVIRONMENT_NAME
+    if: github.event.pull_request.merged == 'true'
+    uses: ./.github/workflows/reusable/build-and-push.yml
+    with:
+      MASTER_ACCOUNT_REGION: $MASTER_ACCOUNT_REGION
+      ENVIRONMENT_NAME: $ENVIRONMENT_NAME
+      OIDC_ROLE_ARN: $OIDC_ROLE_ARN
+      APP_NAME: $APP_NAME
+      IS_PROD_ENVIRONMENT: $IS_PROD_ENVIRONMENT
+
+  DeployApp:
+    #    environment: $ENVIRONMENT_NAME
+    if: github.event.pull_request.merged == 'true'
+    uses: ./.github/workflows/reusable/deploy-app.yml

@@ -1,0 +1,70 @@
+on:
+  workflow_call:
+    inputs:
+      MASTER_ACCOUNT_REGION:
+        required: true
+        type: string
+      ENVIRONMENT_NAME:
+        required: true
+        type: string
+      OIDC_ROLE_ARN:
+        required: true
+        type: string
+      APP_NAME:
+        required: true
+        type: string
+      IS_PROD_ENVIRONMENT:
+        required: true
+        type: boolean
+      TAG_OVERRIDE:
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  BuildAndPush:
+    name: Build & Push Image to ECR
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.vars.outputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup AWS ECR Details
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ inputs.OIDC_ROLE_ARN }}
+          aws-region: ${{ inputs.MASTER_ACCOUNT_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-aws-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set short git commit SHA
+        id: vars
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.ENVIRONMENT_NAME }}
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "tag=$ENVIRONMENT_NAME-$calculatedSha" >> $GITHUB_OUTPUT
+
+      - name: Build and push the tagged docker image to Amazon ECR
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.ENVIRONMENT_NAME }}
+          IS_PROD_ENVIRONMENT: ${{ inputs.IS_PROD_ENVIRONMENT }}
+          ECR_REGISTRY: ${{ steps.login-aws-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ inputs.APP_NAME }}
+          IMAGE_TAG: ${{ steps.vars.outputs.tag }}
+        run: |
+          # TODO: we check for prod env and maybe we deploy the semantic version tag also? so it's easy to roll back to the last version?
+          echo Checking if deploying to production...
+          if [[ $IS_PROD_ENVIRONMENT == true ]]; then echo Environment is production environment. Getting most recent tag... && vtag=${GITHUB_REF#refs/*/} && tag=${vtag#"v"} && prodtag=$ENVIRONMENT_NAME-$tag; fi
+          
+          echo Building image...
+          if [[ -z "${tag}" ]]; then docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$prodtag -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .; else docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .; fi
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
