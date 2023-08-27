@@ -47,3 +47,8 @@ jobs:
   DeployApp:
     #    environment: $ENVIRONMENT_NAME
     uses: ./.github/workflows/deploy-app.yml
+    with:
+      MASTER_ACCOUNT_REGION: $MASTER_ACCOUNT_REGION
+      ENVIRONMENT_NAME: $ENVIRONMENT_NAME
+      OIDC_ROLE_ARN: $OIDC_ROLE_ARN
+      APP_NAME: $APP_NAME
