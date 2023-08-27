@@ -66,5 +66,6 @@ jobs:
           if [[ $IS_PROD_ENVIRONMENT == "true" ]]; then echo Environment is production environment. Getting most recent tag... && vtag=${GITHUB_REF#refs/*/} && tag=${vtag#"v"} && prodtag=$ENVIRONMENT_NAME-$tag; fi
           
           echo Building image...
-          if [[ -z "${tag}" ]]; then docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$prodtag -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .; else docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .; fi
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          if [[ -z "${prodtag}" ]]; then docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$prodtag; fi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
