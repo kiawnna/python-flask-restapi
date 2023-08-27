@@ -71,3 +71,4 @@ jobs:
       ENVIRONMENT_NAME: ${{needs.EnvSetup.outputs.env_name}}
       OIDC_ROLE_ARN: ${{needs.EnvSetup.outputs.oidc_role_arn}}
       APP_NAME: ${{needs.EnvSetup.outputs.app_name}}
+
